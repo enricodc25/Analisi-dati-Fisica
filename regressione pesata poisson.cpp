@@ -36,8 +36,10 @@ int main() {
 	}
 	if(scelta==1){
 		while(fin>>xval>>yval){
-    		x.push_back(xval);
-    		y.push_back(yval);
+		if(xval>=320&&xval<=335 || xval>=390&&xval<=405){
+			x.push_back(xval);
+    			y.push_back(yval);
+		}		
 		}
 		for(int i=0;i<y.size();i++){
 			sigmay.push_back(sqrt(y.at(i)));
