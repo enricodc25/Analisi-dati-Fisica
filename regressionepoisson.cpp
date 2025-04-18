@@ -3,6 +3,7 @@
 #include <vector>
 #include <cmath>
 #include <string>
+// #include <boost/math/distributions/chi_squared.hpp>
 using namespace std;
 
 //prototipi
@@ -10,6 +11,9 @@ void interpolazionePoisson(vector<double> x,vector<double> y, int cov);
 double DeviazioneStandardPosteriori(double a, double b, vector<double> x,vector<double> y);
 double CoefficienteCorrelazione(vector<double> x, vector<double> y);
 double chiquadroLineare(vector<double> x, vector <double> y, vector<double> sigmay, double a, double b);
+// double PValueChiquadro(double chiQuadrato, int gradiLiberta); //ha bisogno dell'iinstallazione della libreria Boost nel terminale in alternativa si usa l'approssimazione funzione gamma
+double p_value_chi_quadrato(double x, int k);
+double gamma_incompleta(double s, double z);
 
 int main() {
 	string filename;
@@ -108,6 +112,47 @@ double chiquadroLineare(vector<double> x, vector<double> y, vector<double> sigma
     return chitot;
 }
 
+// double PValueChiquadro(double chiQuadrato, int gradiLiberta) {
+//     //Bisogna aver installato nel terminale la libreria boost
+//     // Crea una distribuzione chi-quadrato con il numero specificato di gradi di libertà
+//     boost::math::chi_squared distribuzione(gradiLiberta);
+
+//     // Calcola il p-value come la probabilità cumulativa complementare
+//     return 1 - boost::math::cdf(distribuzione, chiQuadrato);
+// }
+
+
+//------------------------APPROSSIMAZIONE p-value  PER N° gradi di libertà elevati------------------------------------//
+// Funzione Gamma incompleta inferiore
+double gamma_incompleta(double s, double z) {
+    const int max_iter = 100;
+    const double epsilon = 1e-6;
+
+    double sum = 1.0 / s;
+    double term = sum;
+    for (int n = 1; n < max_iter; ++n) {
+        term *= z / (s + n);
+        sum += term;
+        if (std::fabs(term) < epsilon * sum) break;
+    }
+    return sum * std::exp(-z + s * std::log(z) - std::lgamma(s));
+}
+
+// Calcolo del p-value CON L'APPOSSIMAZIONE DELLA FUNZIONE GAMMA
+double p_value_chi_quadrato(double x, int k) {
+    double s = k / 2.0;
+    double z = x / 2.0;
+    double gamma_incomp = gamma_incompleta(s, z);
+    double gamma_completa = std::tgamma(s);
+    return 1.0 - gamma_incomp / gamma_completa;
+}
+
+//____________________________________________________________________________________________________________________________________//
+
+
+
+
+
 void interpolazionePoisson(vector<double> x,vector<double> y, int cov){
     double spesi = 0.0;   
     double sx = 0.0;   
@@ -159,6 +204,7 @@ void interpolazionePoisson(vector<double> x,vector<double> y, int cov){
     }
     cout<<"-------------------------TEST STATISTICI----------------------"<<endl;
     cout <<"coefficiente di correlazione r = "<<CoefficienteCorrelazione(x,y)<<endl;
-    cout<<"Il X^2 con "<<(x.size()-2)<<" gradi di liberta' X^2= "<<chiquadroLineare(x,y,sigmay,a,b)<<endl<<endl;
-
+    cout<<"Il X^2 con "<<(x.size()-2)<<" gradi di liberta' X^2= "<<chiquadroLineare(x,y,sigmay,a,b)<<endl;
+    cout<<"Con un p-value= "<<p_value_chi_quadrato(chiquadroLineare(x,y,sigmay,a,b), (x.size()-2))<<endl<<endl;
+    
 }
