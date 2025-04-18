@@ -9,6 +9,7 @@ using namespace std;
 void interpolazionePoisson(vector<double> x,vector<double> y, int cov);
 double DeviazioneStandardPosteriori(double a, double b, vector<double> x,vector<double> y);
 double CoefficienteCorrelazione(vector<double> x, vector<double> y);
+double chiquadroLineare(vector<double> x, vector <double> y, vector<double> sigmay, double a, double b);
 
 int main() {
 	string filename;
@@ -97,6 +98,16 @@ double CoefficienteCorrelazione(vector<double> x, vector<double> y) {
     return somma_prodotti / denominatore;
 }
 
+double chiquadroLineare(vector<double> x, vector<double> y, vector<double> sigmay, double a, double b){
+    double chitot=0.0;
+    //I vettori x e y hanno la stessa dimensione
+    for(int i=0;i<y.size();i++){
+        chitot+=pow(y.at(i)-a-b*x.at(i),2)/pow(sigmay.at(i),2);
+    }
+
+    return chitot;
+}
+
 void interpolazionePoisson(vector<double> x,vector<double> y, int cov){
     double spesi = 0.0;   
     double sx = 0.0;   
@@ -143,9 +154,11 @@ void interpolazionePoisson(vector<double> x,vector<double> y, int cov){
     cout << "sigma_a = " << sigma_a <<endl;
     cout << "sigma_b = " << sigma_b << endl;
     cout << "sigma posteriori = "<<DeviazioneStandardPosteriori(a,b,x,y)<<endl;
-    cout <<"coefficiente di correlazione r = "<<CoefficienteCorrelazione(x,y)<<endl;
     if(cov==1){
         cout<<"I due parametri a e b sono covarianti con una covarianza pari a: "<<covarianza<<endl;
     }
+    cout<<"-------------------------TEST STATISTICI----------------------"<<endl;
+    cout <<"coefficiente di correlazione r = "<<CoefficienteCorrelazione(x,y)<<endl;
+    cout<<"Il X^2 con "<<(x.size()-2)<<" gradi di liberta' X^2= "<<chiquadroLineare(x,y,sigmay,a,b)<<endl<<endl;
 
 }
