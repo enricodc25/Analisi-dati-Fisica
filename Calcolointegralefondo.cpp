@@ -61,8 +61,8 @@ int main() {
     cin>>m1;
     cout<<" a "; 
     cin>>m2;
-
-	while(fin>>xval>>yval){
+    ifstream fin2(filename);
+	while(fin2>>xval>>yval){
 		if(xval>=m1 && xval<=m2){
             x.push_back(xval);    		
             y.push_back(yval);
