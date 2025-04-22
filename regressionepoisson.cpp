@@ -44,9 +44,11 @@ int main() {
     cin>>n4;
 
 	while(fin>>xval>>yval){
-		if(xval>=n1 && xval<=n2 || xval>=n3 && xval<=n4){
-            x.push_back(xval);    		
-            y.push_back(yval);
+		if(xval>=n1 && xval<=n2 || xval>=n3 && xval<=n4 ){
+			if(yval!=0){
+				x.push_back(xval);    		
+          			y.push_back(yval);
+			}
         }
     }
     cout<<"I due parametri a e b sono covarianti? ( inserisci 1 se si , mentre 0 se non lo sono ): "<<endl;
