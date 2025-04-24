@@ -120,7 +120,9 @@ int main() {
 
 double pvalue = 1- erf (lambda / sqrt (2));
 	cout << "pvalue = " << pvalue << endl;
-
+double CL= 0.0;
+	CL=(1-pvalue)*100 ;
+	cout << "CL vale " << CL << "%"<< endl;
 	
 return 0;    
 }
