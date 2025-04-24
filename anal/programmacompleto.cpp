@@ -117,6 +117,10 @@ int main() {
 	else if(lambda<1){
 		cout<< "La compatibilita' e' ottima, il picco non e' significativo ";
 	}
+
+double alpha = 1- erf (lambda / sqrt (2));
+	cout << "alpha = " << alpha << endl;
+
 	
 return 0;    
 }
