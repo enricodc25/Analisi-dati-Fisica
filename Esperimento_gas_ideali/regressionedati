@@ -7,16 +7,18 @@ using namespace std;
 
 void interpolazionesemplice(vector<double> x, vector<double> y, double &a, double&b, double &sigma_a, double &sigma_b);
 
+void errorevolume(double b, vector<double> p, vector<double> y);
 
 
 int main (){
 	
 	string filename;
-    vector<double> x, y;
+	vector<double> x, y, p;
 	double xval,yval,sigma;
     double zval; 
     double a,b;
     double sigma_a, sigma_b;
+    
 
 	cout<< "___________REGRESSIONE LINEARE 1/P-V______ "<<endl;
     //operazioni dal file e presa dati
@@ -27,16 +29,19 @@ int main (){
     if(!fin){
     	cout<<"Il file non e' stato caricato correttamente"<<endl;
     	return -1;
-	}
-
-		while(fin>>xval>>yval>>zval){
-				x.push_back(1/xval);    		
-          		y.push_back(yval);
-        }
+    }
+    while(fin>>xval>>yval>>zval){
+	x.push_back(1/xval);    		
+    	y.push_back(yval);
+    	p.push_back(xval);
+    }
+    
     
   interpolazionesemplice(x,y,a,b,sigma_a, sigma_b);
+  errorevolume(b,p,y);
 
-return 0; }
+return 0; 
+}
 
 
 //INTERPOLAZIONE SEMPLICE CON INCERTEZZE SULLE Y TUTTE UGUALI
@@ -64,11 +69,11 @@ void interpolazionesemplice(vector<double> x, vector<double> y,double &a, double
     b = ( (n* sxy) - (sx * sy ) ) / delta;
     
     
-	double sigma_postquadrato=0.0;
+double sigma_postquadrato=0.0;
     //calcolo sigma_post
     for(int i=0; i<n; i++){
  
-	sigma_postquadrato += (pow(2,(y.at(i)- (a+b*(x.at(i))))/(n-2)));
+	sigma_postquadrato += pow((y.at(i)- (a+b*(x.at(i))))/(n-2),2);
    
 }
 	double sigma_post= sqrt(sigma_postquadrato);
@@ -78,12 +83,12 @@ void interpolazionesemplice(vector<double> x, vector<double> y,double &a, double
     //calcolo varianza(x)
     for(int i=0; i< n; i++){
 	xsomma+= x.at(i);
-}
-		double xmedio= xsomma/n;
+	}
+	double xmedio= xsomma/n;
 	
 	for(int i=0; i<n; i++){
-	varx += (pow(2, (x.at(i)-xmedio)/(n-1)));
-    }
+		varx += pow(((x.at(i)-xmedio)/(n-1)),2);
+    	}
 
 	
     
@@ -98,3 +103,40 @@ void interpolazionesemplice(vector<double> x, vector<double> y,double &a, double
     cout << "sigma_a = " << sigma_a <<endl;
     cout << "sigma_b = " << sigma_b << endl;
 }
+
+void errorevolume(double b, vector<double> p, vector<double> y){
+//calcolo deltav
+double c;
+double miny = y.at(0);
+double maxy = y.at(0);
+for(auto c:y)
+	if(c>maxy)
+	maxy = c;
+	if(c<miny)
+	miny = c;
+double deltav = maxy - miny;
+
+//calcolo deltap
+double d;
+double minp = p.at(0);
+double maxp = p.at(0);
+for (auto d:p)
+	if(d>maxp)
+	maxp = d;
+	if(c<minp)
+	minp = c;
+double deltap = maxp - minp;
+
+double bmax = b*(1+0.6/deltav);
+double bmin = b*(1-0.6/deltav);
+double deltab = (0.6/deltav)*b;
+double errmaxrelativo = deltab/b;
+double devstdv = 0.6/(sqrt(3)*deltav);
+double devstdp = 0.06/(sqrt(3)*deltap);
+cout << "errorerelativo= " << errmaxrelativo <<endl;
+cout << "devstandardvolume = " << devstdv <<endl;
+cout << "devstandardpressione = " << devstdp <<endl;
+}
+
+
+
