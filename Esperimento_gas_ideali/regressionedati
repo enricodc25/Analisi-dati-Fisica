@@ -1,0 +1,100 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cmath>
+#include <string>
+using namespace std;
+
+void interpolazionesemplice(vector<double> x, vector<double> y, double &a, double&b, double &sigma_a, double &sigma_b);
+
+
+
+int main (){
+	
+	string filename;
+    vector<double> x, y;
+	double xval,yval,sigma;
+    double zval; 
+    double a,b;
+    double sigma_a, sigma_b;
+
+	cout<< "___________REGRESSIONE LINEARE 1/P-V______ "<<endl;
+    //operazioni dal file e presa dati
+	cout << "Inserire il nome del file di input: ";
+    cin >> filename;
+    ifstream fin(filename);
+
+    if(!fin){
+    	cout<<"Il file non e' stato caricato correttamente"<<endl;
+    	return -1;
+	}
+
+		while(fin>>xval>>yval>>zval){
+				x.push_back(1/xval);    		
+          		y.push_back(yval);
+        }
+    
+  interpolazionesemplice(x,y,a,b,sigma_a, sigma_b);
+
+return 0; }
+
+
+//INTERPOLAZIONE SEMPLICE CON INCERTEZZE SULLE Y TUTTE UGUALI
+void interpolazionesemplice(vector<double> x, vector<double> y,double &a, double&b, double &sigma_a, double &sigma_b){  
+    double sx = 0.0;   
+    double sy = 0.0;  
+    double sxx = 0.0;  
+    double sxy = 0.0; 
+    double n=x.size(); 
+  
+
+	//calcolo somme intermedie
+    for (int i = 0; i < n; i++) {
+        sx  += x.at(i); 
+        sy  += y.at(i);
+        sxx += x.at(i) * x.at(i);
+        sxy += x.at(i) * y.at(i);
+    }
+
+    // Calcolo del DELTA
+    double delta = n*(sxx) - (sx * sx);
+
+    // Stima dei parametri a e b
+    a = ( (sxx * sy) - (sx * sxy) ) / delta;
+    b = ( (n* sxy) - (sx * sy ) ) / delta;
+    
+    
+	double sigma_postquadrato=0.0;
+    //calcolo sigma_post
+    for(int i=0; i<n; i++){
+ 
+	sigma_postquadrato += (pow(2,(y.at(i)- (a+b*(x.at(i))))/(n-2)));
+   
+}
+	double sigma_post= sqrt(sigma_postquadrato);
+	
+	double xsomma=0.0;
+	double varx=0.0;
+    //calcolo varianza(x)
+    for(int i=0; i< n; i++){
+	xsomma+= x.at(i);
+}
+		double xmedio= xsomma/n;
+	
+	for(int i=0; i<n; i++){
+	varx += (pow(2, (x.at(i)-xmedio)/(n-1)));
+    }
+
+	
+    
+    //Calcolo delle incertezze relative ai parametri   
+    sigma_a = sqrt (((sigma_postquadrato)/(n))*(1+((xmedio*xmedio)/(varx))));
+    sigma_b = sqrt ((sigma_postquadrato)/(n*varx));
+
+    cout << "=== RISULTATI DEL FIT LINEARE SEMPLICE per una retta y=a+bx ===" << endl;
+    cout << "a = " << a << endl;
+    cout << "b = " << b << endl;
+    cout << "sigma a posteriori=" << sigma_post <<endl;
+    cout << "sigma_a = " << sigma_a <<endl;
+    cout << "sigma_b = " << sigma_b << endl;
+}
