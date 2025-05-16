@@ -1,0 +1,4 @@
+set grid
+set title "Grafico residui" font "Arial,13"
+
+plot "0gradires.txt" with points linecolor "red" title "0°C", "15gradires.txt" with points linecolor "orange" title "15°C", "25gradires.txt" with points linecolor "pink" title "25°C", "35gradires.txt"with points linecolor "green" title "35°C", "45gradires.txt" using 1:2 with points linecolor "blue" title "45°C","55gradires.txt" with points linecolor "purple" title "55°C", "0gradiresdil.txt" with points linecolor "red" title "0°C", "15gradiresdil.txt" with points linecolor "orange" title "15°C", "25gradiresdil.txt" with points linecolor "pink" title "25°C", "35gradiresdil.txt" with points linecolor "green" title "35°C", "45gradiresdil.txt" with points linecolor "blue" title "45°C","55gradiresdil.txt" with points linecolor "purple" title "55°C"
