@@ -1,0 +1,44 @@
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <vector>
+#include <string>
+int main() {
+
+    std::ifstream input("prova_tenuta.txt");
+    std::ofstream output("fileout");
+
+    if (!input) {
+        std::cerr << "Errore nell'apertura del file dati.txt\n";
+        return 1;
+    }
+
+    if (!output) {
+        std::cerr << "Errore nella creazione del file risultato.txt\n";
+        return 1;
+    }
+
+    // Costanti note
+    const double R = 8.314;      // [J/(mol·K)]
+    const double V_0 = 0.373167;    // [m^3], esempio
+
+    double p, V_CL, T;
+    int i = 0;
+    double t_i;
+
+    
+    output << "t(s)\tn(moli)\n";
+
+    while (input >> p >> V_CL >> T) {
+        t_i = 0.1 * i;
+        double n = ((p*9,806) * (V_CL + V_0)) / (R * (T+273,15)*100);
+        output << t_i << "\t" << n << "\n";
+        i++;
+    }
+
+    input.close();
+    output.close();
+
+    std::cout << "Calcolo completato. File risultato.txt generato.\n";
+    return 0;
+}
