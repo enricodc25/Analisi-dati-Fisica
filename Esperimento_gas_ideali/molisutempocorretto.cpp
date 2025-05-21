@@ -5,7 +5,7 @@
 #include <string>
 #include <cmath>
 using namespace std;
-void interpolazionesemplice(vector<double> x, vector<double> y);
+void interpolazionesemplice(vector<double> x, vector<double> y, double &a, double &b);
 double deviazioneStandardCampionaria(vector<double> dati);
 
 int main() {
@@ -14,6 +14,7 @@ int main() {
     std::ofstream output("prova.txt");
     vector<double> moli,tempi;
     double n;
+    double alfa,nzero;
     if (!input) {
         std::cerr << "Errore nell'apertura del file dati.txt\n";
         return 1;
@@ -36,7 +37,7 @@ int main() {
         t_i = 0.1 * i;
         n = (p* (V_CL + V_0)*9.806) / (R * (T+273.15)*100);
         moli.push_back(n);
-        tempi.push_back(n);
+        tempi.push_back(t_i);
         output << t_i << "\t" << n << "\n";
         i++;
     }
@@ -45,14 +46,13 @@ int main() {
     output.close();
 
     std::cout << "Calcolo completato. File risultato.txt generato.\n";
+    interpolazionesemplice(tempi,moli,nzero,alfa);
     cout<<"---CALCOLO ALFA, errore sistematico dovuto ad una perdita di gas lineare nel tempo"<<endl;
-
+    cout<<" Alfa: "<<alfa<<"  Nzero: "<<nzero<<endl;
     return 0;
 }
-
-
 //INTERPOLAZIONE SEMPLICE CON INCERTEZZE SULLE Y TUTTE UGUALI
-void interpolazionesemplice(vector<double> x, vector<double> y){  
+void interpolazionesemplice(vector<double> x, vector<double> y, double &a, double &b){  
     double sx = 0.0;   
     double sy = 0.0;  
     double sxx = 0.0;  
@@ -72,18 +72,12 @@ void interpolazionesemplice(vector<double> x, vector<double> y){
     double delta = n*(sxx) - (sx * sx);
 
     // Stima dei parametri a e b
-    double a = ( (sxx * sy) - (sx * sxy) ) / delta;
-    double b = ( (n* sxy) - (sx * sy ) ) / delta;
+    a = ( (sxx * sy) - (sx * sxy) ) / delta;
+    b = ( (n* sxy) - (sx * sy ) ) / delta;
 
     //Calcolo delle incertezze relative ai parametri   
     double sigma_a = sigmay*sqrt(sxx/ delta);
     double sigma_b = sigmay*sqrt(n/ delta);
-
-    cout << "=== RISULTATI DEL FIT LINEARE SEMPLICE per una retta y=a+bx ===" << endl;
-    cout << "a = " << a << endl;
-    cout << "b = " << b << endl;
-    cout << "sigma_a = " << sigma_a <<endl;
-    cout << "sigma_b = " << sigma_b << endl;
 }
 
 // Deviazione standard campionaria
