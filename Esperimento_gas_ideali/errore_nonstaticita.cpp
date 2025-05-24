@@ -30,13 +30,29 @@ void errore_nonstatiticita(vector<double> tdil,vector<double> tcomp,double bdil,
     incertezza_n=abs((ndil-ncomp)/((2*sqrt(3))*median));
     //per la temperatura media faccio la media tra le due medie della temperatura di compressione e di dilatazione
     tmedia=(tdilmedia+tcompmedia)/2;
+    double devstandardtempcomp=deviazioneStandardCampionaria(tcomp);
+    double devstandardtempdil=deviazioneStandardCampionaria(tdil);
 
     for(int i=0;i<tdil.size();i++){
         tcomp.push_back(tdil.at(i));
     }
     double devstandardtemp=deviazioneStandardCampionaria(tcomp);
+    double erroredevtcomp=0.3/(sqrt(3)*tcompmedia);
+    double erroredevtdil=0.3/(sqrt(3)*tdilmedia);
     double erroredevt=0.3/(sqrt(3)*tmedia);
-    
+ 
+
+
+
+
+    cout<<"Temperatura media compressione: "<<tcompmedia<<endl;
+    cout<<"Temperatura media dilatazione: "<<tdilmedia<<endl;
+    cout<<"Variazione relativa della temperatura COMPRESSIONE:  "<<devstandardtempcomp/tcompmedia<<endl;
+    cout<<"Variazione relativa della temperatura DILATAZIONE:  "<<devstandardtempdil/tdilmedia<<endl;
+
+    cout<<"Deviazione standard della temperatura COMPRESSIONE sapendo l'errore massimo sulla temperatura: "<<erroredevtcomp<<endl;
+    cout<<"Deviazione standard della temperatura DILATAZIONE sapendo l'errore massimo sulla temperatura: "<<erroredevtdil<<endl;
+
     cout<<"La temperatura media per questa particolare temperatura: "<<tmedia<<endl;
     cout<<"Variazione relativa della temperatura:  "<<devstandardtemp/tmedia<<endl;
     cout<<"Deviazione standard della temperatura sapendo l'errore massimo sulla temperatura: "<<erroredevt<<endl;
