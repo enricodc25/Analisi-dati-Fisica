@@ -37,7 +37,9 @@ int main (){
     interpolazionesemplice(x,y,a,b,sigma_a, sigma_b);
     errorevolume(b,p,y);
 
-    
+double errcasb;
+errcasb = sigma_b/b; 
+cout << "L'errore casuale su b e'" << errcasb << endl; 
 
 
 
