@@ -22,8 +22,8 @@ void errore_nonstatiticita(vector<double> tdil,vector<double> tcomp,double bdil,
     cout<<"DEVO CALCOLARE L'ERRORE DELLA NON STATICITA, HO BISOGNO DEL VALORE DI R "<<endl;
     r=8.314;
     //Ora la temperatura la converto in kelvin
-    ndil=(bdil/(r*(tdilmedia+273.15)))*9.806/100;
-    ncomp=(bcomp/(r*(tcompmedia+273.15)))*9.806/100;
+    ndil=(bdil/(r*(tdilmedia)))*9.806/100;
+    ncomp=(bcomp/(r*(tcompmedia)))*9.806/100;
     //per la n media caratteristica di una temperatura faccio la media tra le moli di compressione e di dilatazione
     median=(ndil+ncomp)/2;
 
@@ -36,18 +36,16 @@ void errore_nonstatiticita(vector<double> tdil,vector<double> tcomp,double bdil,
     for(int i=0;i<tdil.size();i++){
         tcomp.push_back(tdil.at(i));
     }
+
     double devstandardtemp=deviazioneStandardCampionaria(tcomp);
-    double erroredevtcomp=0.3/(sqrt(3)*tcompmedia);
-    double erroredevtdil=0.3/(sqrt(3)*tdilmedia);
+    double erroredevtcomp=0.3/(sqrt(3)*(tcompmedia));
+    double erroredevtdil=(0.3)/(sqrt(3)*(tdilmedia));
     double erroredevt=0.3/(sqrt(3)*tmedia);
- 
-
-
-
+    double w=devstandardtempcomp/tcompmedia;
 
     cout<<"Temperatura media compressione: "<<tcompmedia<<endl;
     cout<<"Temperatura media dilatazione: "<<tdilmedia<<endl;
-    cout<<"Variazione relativa della temperatura COMPRESSIONE:  "<<devstandardtempcomp/tcompmedia<<endl;
+    cout<<"Variazione relativa della temperatura COMPRESSIONE:  "<<w<<endl;
     cout<<"Variazione relativa della temperatura DILATAZIONE:  "<<devstandardtempdil/tdilmedia<<endl;
 
     cout<<"Deviazione standard della temperatura COMPRESSIONE sapendo l'errore massimo sulla temperatura: "<<erroredevtcomp<<endl;
@@ -111,14 +109,14 @@ int main(){
     while(fin1>>xval>>yval>>zval){
 	    x1.push_back(xval);    		
     	y1.push_back(yval);
-    	z1.push_back(zval);
+    	z1.push_back(zval+273.15);
     
     }  
 
     while(fin2>>xval>>yval>>zval){
 	    x2.push_back(xval);    		
     	y2.push_back(yval);
-    	z2.push_back(zval);
+    	z2.push_back(zval+273.15);
     
     }     
     errore_nonstatiticita(z2,z1,bdil,bcomp);
