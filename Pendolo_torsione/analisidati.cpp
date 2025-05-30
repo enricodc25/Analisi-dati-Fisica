@@ -55,14 +55,15 @@ int main() {
     vector<double> xsFit, ysFit; 
     vector<double> stimax1,stimamax;
     double stimax,stimam;      
-
     while (idx < p.size()) {
+        //questa funzione mi permette di prendere tutti i dati positivi fino a quando non incontra un dato negativo ( significa fine della mia curva) 
         int len = estraiPositivi(p, t, int(idx), bloccoP, bloccoT); //mettere tipo int(...) significa fare un casting, ovvero "forzare" quel dato di essere di quel tipo primitivo
                                                                     //essendo un indice va messo int, nonostante noi lo ricaviamo come double
         if (len == 0) {
             idx += 1.0;
             continue;
         }
+        //l'idea del programa è andare a selezionare ogni curva positiva e predere come soglia il 70% rispetto al valore massimo globale in quell'intervallo
         double maxVal = *max_element(bloccoP.begin(), bloccoP.end()); //questa è una funzione della libreria algorithm, usando i metodi .begin() e .end() io mi assicuro di prendere dall'inizio alla fine, è una scrittura compatta
         double soglia = 0.70 * maxVal;
         cout << "Bloc #" << idx << ": max=" << maxVal //occhio, questa istruzione continua sotto, per questo nonostante sembra senza ; funziona il programma
