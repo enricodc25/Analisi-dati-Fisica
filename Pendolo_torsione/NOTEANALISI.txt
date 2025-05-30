@@ -1,0 +1,28 @@
+
+N.B -> (In generale controllare la prima curva che può essere incompleta come anche l'ultima, e compiere un taglio circa sullo zero,
+quindi anche se nel file c'è scritto che va bene, controllare sempre questo fatto, su ogni file)
+
+-> La presenza di soglie balorde si può attribuire al fatto che il programma non gestisce il caso in cui per esempio, data la variabilità dei dati,
+l'eventuale presenta di una successione di dati fatta così: prima uno negativo, poi per caso uno leggermente positivo, e poi negativo: questo il programmalo
+lo considera come una piccola cresta. Un altro problema è legato che non gestisce il caso in cui un dato sta esattamente nello zero. 
+
+File da dare una occhiata:
+- Nel file f0.910 ci sono delle soglie scorrette, e c'è una zona inizaile e una zona in mezzo che bisogna eliminare
+- soglie scorrette anche in f0.905
+- Nel file 0.915 zone di dati da eliminare
+- Stessa cosa per 0.920
+- Per 0.925 i dati sembrano migliori, ci sono alcune soglie da controllare
+- Per 0.930 idem
+- per 0.935 idem (c'è solo un picco in cui sembra ci sia una sovrapposizioni strana)
+- per 0.940 idem
+- per 0.945 ci sono delle soglie sistematiche balorde
+- per 0.950 OK IL PRIMO FILE TUTTO SENSATO DA NON TOCCARE ;)
+- per il file f0.9625 Anche per lui è tutto apposto, anche le soglie sono perfette
+- Per il file f0.964 tutto bene
+- per il file f0.96450 tutto bene 
+- per il file f0.96460 tutto bene
+- per il file f0.96470 tutto bene
+- per il file f0.990 ci sono delle soglie balorde
+- per il file f1 ( sta per frequenza massima della forzante) anche qua ci sono soglie balorde,
+Manca da vedere l'unico file di cui abbiamo preso anche lo smorzamento. Ho dato un'occhiata a questo file e sembra che non ci siano
+cose strane come dati, sembrano andare bene.
