@@ -27,6 +27,7 @@ int main() {
          string nomefile;
          cout<<"Inserisci il nome del file: ";
          cin>>nomefile;
+         double M_PI= 3.14159226535897932384; 
     
 
     ifstream fin(nomefile);
@@ -51,10 +52,27 @@ int main() {
     // }
 
     vector<double> bloccoP, bloccoT;   
-    double idx = 0.0;
-    vector<double> xsFit, ysFit; 
+    double idxraccolta = 0.0;
+   	vector<double> xsFit, ysFit; 
     vector<double> stimax1,stimamax;
-    double stimax,stimam;      
+    double stimax,stimam;    
+	vector <double> maxtotali;  
+	while (idxraccolta<p.size()){
+		 int len = estraiPositivi(p, t, int(idxraccolta), bloccoP, bloccoT); //mettere tipo int(...) significa fare un casting, ovvero "forzare" quel dato di essere di quel tipo primitivo
+                                                                   			 //essendo un indice va messo int, nonostante noi lo ricaviamo come double
+        if (len == 0) {
+            idxraccolta += 1.0;
+            continue;   
+        }
+		double maxVal = *max_element(bloccoP.begin(), bloccoP.end());
+		maxtotali.push_back(maxVal);
+		idxraccolta +=double(len);
+	}
+	double mediaMaxtotali = media(maxtotali);
+	double sogliadeimax = mediaMaxtotali / 3.0;  // Soglia della media dei massimi
+	
+	
+	double idx=0.0;
     while (idx < p.size()) {
         //questa funzione mi permette di prendere tutti i dati positivi fino a quando non incontra un dato negativo ( significa fine della mia curva) 
         int len = estraiPositivi(p, t, int(idx), bloccoP, bloccoT); //mettere tipo int(...) significa fare un casting, ovvero "forzare" quel dato di essere di quel tipo primitivo
@@ -63,9 +81,14 @@ int main() {
             idx += 1.0;
             continue;
         }
-        //l'idea del programa è andare a selezionare ogni curva positiva e predere come soglia il 70% rispetto al valore massimo globale in quell'intervallo
+        //l'idea del programma è andare a selezionare ogni curva positiva e predere come soglia il 70% rispetto al valore massimo globale in quell'intervallo
         double maxVal = *max_element(bloccoP.begin(), bloccoP.end()); //questa è una funzione della libreria algorithm, usando i metodi .begin() e .end() io mi assicuro di prendere dall'inizio alla fine, è una scrittura compatta
-        double soglia = 0.70 * maxVal;
+       	        
+       	if (maxVal < sogliadeimax) {  // Salta picchi troppo piccoli
+        idx += double(len);
+        continue;
+    	}
+         double soglia = 0.70 * maxVal;
         cout << "Bloc #" << idx << ": max=" << maxVal //occhio, questa istruzione continua sotto, per questo nonostante sembra senza ; funziona il programma
              << " -> soglia=" << soglia << "\n"; //il barra \n è un modo derivante dal c per andare a capo, come con endl
         xsFit.clear();
@@ -77,6 +100,8 @@ int main() {
                 xsFit.push_back(bloccoT.at(i));
             }
         } 
+        
+     
         stimax=media(xsFit);
         stimax1.push_back(stimax);
         stimam=media(ysFit);
@@ -110,8 +135,9 @@ int main() {
     }
 
     tmedio=media(tnocorr);
-    cout<<"Il periodo medio stimato complessivo (considerando periodi separati): "<<tmedio <<"del file"<<nomefile<<endl;
-    cout<<"Omega per il file "<<nomefile<<" vale: "<<(2*M_PI/tmedio)<<" [unità di misura] "<<endl;
+    cout<< "Numero periodi: " << tnocorr.size() << endl;
+    cout<<"Il periodo medio stimato complessivo (considerando periodi separati): "<<tmedio <<" del file "<<nomefile<<endl;
+    cout<<"Omega per il file "<<nomefile<<" vale: "<<(2*M_PI/tmedio)<<" [unita di misura] "<<endl;
     cout<<"---------------------------------------------------------------------------------------------------------"<<endl;
     
 
