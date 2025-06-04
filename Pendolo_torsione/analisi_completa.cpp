@@ -20,14 +20,18 @@ int estraiPositivi(const vector<double>& p,const vector<double>& t,int startInde
 int estraiNegativi(const vector<double>& p,const vector<double>& t,int startIndex,vector<double>& out_p,vector<double>& out_t);
 double media(vector<double> v);
 double deviazioneStandardCampionaria(vector<double>& dati);
+void interpolazionesemplice(vector<double> x, vector<double> y, double& a);
 
 int main() {
     //  vector<string> nomifile={"f0.9.txt","f0.905.txt","f0.910.txt","f0.915.txt","f0.925.txt", "f0.930.txt", "f0.935.txt", "f0.940.txt", "f0.945.txt", "f0.964.txt","f0.965.txt","f0.970.txt"
     //  ,"f0.975.txt", "f0.980.txt", "f0.06470.txt", "f0.9200.txt", "f0.9625.txt", "f0.9900.txt","f0.96450.txt", "f0.96460.txt"};
          vector<double> t, f, p, a, fa;
+         int scelta;
          string nomefile;
          cout<<"Inserisci il nome del file: ";
          cin>>nomefile;
+         cout<<"Il file è di smorzamento? ( inserire 0, altrimenti un altro numero) ";
+         cin>>scelta;
         //  double M_PI= 3.14159226535897932384; 
     
 //CARICAMENTO DATI DEL FILE
@@ -80,11 +84,13 @@ int main() {
         }
         //l'idea del programma è andare a selezionare ogni curva positiva e predere come soglia il 70% rispetto al valore massimo globale in quell'intervallo
         double maxVal = *max_element(bloccoP.begin(), bloccoP.end()); //questa è una funzione della libreria algorithm, usando i metodi .begin() e .end() io mi assicuro di prendere dall'inizio alla fine, è una scrittura compatta
-       	        
-       	if (maxVal < sogliadeimax) {  // Salta picchi troppo piccoli
-            idx += double(len);
-            continue;
-    	}
+
+            // if (maxVal < sogliadeimax) {  // Salta picchi troppo piccoli
+            //   idx += double(len);
+            //   continue;
+    	    // }
+          
+       	
         double soglia = 0.70 * maxVal;
         cout << "Bloc #" << idx << ": max=" << maxVal //occhio, questa istruzione continua sotto, per questo nonostante sembra senza ; funziona il programma
              << " -> soglia=" << soglia << "\n"; //il barra \n è un modo derivante dal c per andare a capo, come con endl
@@ -136,11 +142,14 @@ int main() {
             continue;
         }
         double minVal = *min_element(bloccoP.begin(), bloccoP.end());
-
-        if (minVal > sogliadeimin) {  
-            idx += double(lenNeg);
-            continue;
-        }
+    //qua nel caso di smorzamento non deve esserci il controllo della soglia?
+  
+        // if (minVal > sogliadeimin) {  
+        //     idx += double(lenNeg);
+        //     continue;
+        // }
+    
+        
         double sogliaMin = 0.70 * minVal;
         cout << "Bloc Neg #" << idx << ": min=" << minVal
              << " -> sogliaMin=" << sogliaMin << "\n";
@@ -198,9 +207,42 @@ int main() {
     cout << "Deviazione standard campionaria del periodo: " << dev_std << endl;
     cout << "Errore sulla media del periodo: " << dev_std/sqrt(n) << endl;
     cout << "Errore omega f è " << erroreomegaf <<endl;
-    cout<<"La theta particolare (semiampiezza) con dati scorrelati vale: "<<thetaMedio<<endl;
-    cout<<"La deviazione standard del theta particolare medio (semiampiezza): "<<devtheta<<endl;
+    cout<<"La theta particolare (semiampiezza) con dati scorrelati vale: "<<thetaMedio*2*M_PI<<endl;
+    cout<<"La deviazione standard del theta particolare medio (semiampiezza): "<<devtheta*2*M_PI<<endl;
     cout<<"---------------------------------------------------------------------------------------------------------"<<endl;
+
+
+    //Analisi smorzamento
+    
+
+    if(scelta==0){
+        ofstream stampamax("maxgamma.txt");
+        vector<double> appog;
+        vector<double> appog2;
+        //nel vector thetaparticolari ho i tetha da convertire
+        cout<<"-----------Vari theta particolari con rispettivo periodo: "<<endl;
+        cout<<"____PER I MASSIMI: ___"<<endl;
+        for(int i=0;i<stimax1.size();i++){
+            cout<<"-> tempo: "<<stimax1.at(i)<<" theta: "<<stimamax.at(i)<<endl;
+            //aggiorno i dati in logaritmi naturali
+            appog.push_back(log(stimamax.at(i)*2*M_PI));
+        }       
+        for(int i=0;i<appog.size();i++){
+            stampamax<<stimax1.at(i)<<" "<<stimamax.at(i)<<endl;
+        }
+        cout<<"_____PER I MINIMI: ____"<<endl;
+        for(int i=0;i<stimin1.size();i++){
+            cout<<"-> tempo: "<<stimin1.at(i)<<" theta: "<<stiminval.at(i)<<endl;
+            appog2.push_back(log(stiminval.at(i)*2*M_PI));
+        }
+    double gammamax,gammamin;
+    interpolazionesemplice(stimax1,appog,gammamax);
+    interpolazionesemplice(stimin1,appog2,gammamin);
+
+    cout<<"Il valore di gamma per i massimi: "<<gammamax<<endl;
+    cout<<"Il valore di gamma per i minimi: "<<gammamin<<endl;
+
+    }
 
     return 0;
 }
@@ -262,3 +304,37 @@ double deviazioneStandardCampionaria(vector<double>& dati) {
     }
     return sqrt(sommaQuadrati / (n - 1));
 }
+//INTERPOLAZIONE SEMPLICE CON INCERTEZZE SULLE Y TUTTE UGUALI
+void interpolazionesemplice(vector<double> x, vector<double> y, double& a){  
+    double sx = 0.0;   
+    double sy = 0.0;  
+    double sxx = 0.0;  
+    double sxy = 0.0; 
+    double n=x.size(); 
+    double sigmay=deviazioneStandardCampionaria(y);
+
+	//calcolo somme intermedie
+    for (int i = 0; i < n; i++) {
+        sx  += x.at(i); 
+        sy  += y.at(i);
+        sxx += x.at(i) * x.at(i);
+        sxy += x.at(i) * y.at(i);
+    }
+
+    // Calcolo del DELTA
+    double delta = n*(sxx) - (sx * sx);
+
+    // Stima dei parametri a e b
+    a = ( (sxx * sy) - (sx * sxy) ) / delta;
+    double b = ( (n* sxy) - (sx * sy ) ) / delta;
+
+    //Calcolo delle incertezze relative ai parametri   
+    double sigma_a = sigmay*sqrt(sxx/ delta);
+    double sigma_b = sigmay*sqrt(n/ delta);
+
+    cout << "=== RISULTATI DEL FIT LINEARE SEMPLICE per una retta y=a+bx ===" << endl;
+    cout << "a = " << a << endl;
+    cout << "b = " << b << endl;
+}
+
+//ora inserisco l'interpolazione lineare che però verrà modificata ( perchè devo fare il logaritmo delle theta)
