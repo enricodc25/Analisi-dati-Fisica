@@ -247,6 +247,12 @@ int main() {
 
     cout<<"Il valore di gamma per i massimi: "<<gammamax<<endl;
     cout<<"Il valore di gamma per i minimi: "<<gammamin<<endl;
+    //calcolo l'omega di risonanza atteso a livello teorico
+    //bisogna prima esaminare se è legittimo fare la media delle gamma, soprattuto per quanto riguarda l'analisi poi degli errori
+    double mediagamma=(gammamax+gammamin)/2;
+    double omegarteorico=sqrt((2*M_PI/tmedio)*(2*M_PI/tmedio)-mediagamma*mediagamma);
+    //bisogna confrontare questo valore con l'oomega di risonanza ricavato attraveros il fit parabolico con l'altro programma ( test gaussiano) 
+    cout<<"La omega TEORICA di risonanza è pari a: "<<omegarteorico<<endl;
 
     }
 
