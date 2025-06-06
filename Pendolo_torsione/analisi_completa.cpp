@@ -4,7 +4,6 @@
 #include <algorithm>        
 #include <cmath>
 using namespace std;
-
 struct ParabolaFitResult {
     double a, b, c;
 };
@@ -21,13 +20,16 @@ int estraiNegativi(const vector<double>& p,const vector<double>& t,int startInde
 double media(vector<double> v);
 double deviazioneStandardCampionaria(vector<double>& dati);
 void interpolazionesemplice(vector<double> x, vector<double> y, double& a);
+void interpolazionepesata(vector<double> x, vector<double> y, vector<double> sigmay,double& b, double& erroreb);
 
 int main() {
     //  vector<string> nomifile={"f0.9.txt","f0.905.txt","f0.910.txt","f0.915.txt","f0.925.txt", "f0.930.txt", "f0.935.txt", "f0.940.txt", "f0.945.txt", "f0.964.txt","f0.965.txt","f0.970.txt"
     //  ,"f0.975.txt", "f0.980.txt", "f0.06470.txt", "f0.9200.txt", "f0.9625.txt", "f0.9900.txt","f0.96450.txt", "f0.96460.txt"};
          vector<double> t, f, p, a, fa;
          int scelta;
-         string nomefile;
+        string nomefile;
+
+
          cout<<"Inserisci il nome del file: ";
          cin>>nomefile;
          cout<<"Il file è di smorzamento? ( inserire 0, altrimenti un altro numero) ";
@@ -56,7 +58,8 @@ int main() {
    	vector<double> xsFit, ysFit; 
     vector<double> stimax1,stimamax;
     double stimax,stimam;    
-	vector <double> maxtotali;  
+	vector <double> maxtotali;
+    vector <double> errori_thetamax;  
 
 	while (idxraccolta<p.size()){
 		int len = estraiPositivi(p, t, int(idxraccolta), bloccoP, bloccoT); //mettere tipo int(...) significa fare un casting, ovvero "forzare" quel dato di essere di quel tipo primitivo
@@ -109,15 +112,18 @@ int main() {
         } 
         stimax=media(xsFit);
         stimax1.push_back(stimax);
-        stimam=media(ysFit);
-        stimamax.push_back(stimam);
-        idx += double(len);    
+       
+            errori_thetamax.push_back(deviazioneStandardCampionaria(ysFit) / sqrt(ysFit.size()));
+            stimam=media(ysFit);
+            stimamax.push_back(stimam);
+            idx += double(len);    
     }
     cout<<"_____________________INIZIANO I MINIMI____________________"<<endl<<endl;
 
     //||||||||||________________________PARTE DI CALCOLO DEI MINIMI_________________________|||||||||//
     vector<double> xsMinFit, ysMinFit;
     vector<double> stimin1, stiminval;  // stimin1 = ascisse dei minimi, stiminval = valori dei minimi
+    vector<double> errori_thetamin;
     idx = 0.0;
     idxraccolta = 0.0;
     double minval;
@@ -151,11 +157,7 @@ int main() {
             if (minVal > sogliadeimin) {  
             idx += double(lenNeg);
             continue;
-            }
-        
-        
-    
-        
+            }    
         double sogliaMin = 0.70 * minVal;
         cout << "Bloc Neg #" << idx << ": min=" << minVal
              << " -> sogliaMin=" << sogliaMin << "\n";
@@ -170,6 +172,7 @@ int main() {
         }
         double stimin = media(xsMinFit);
         double stimin_y = media(ysMinFit);
+        errori_thetamin.push_back(deviazioneStandardCampionaria(ysMinFit)/sqrt(ysMinFit.size()));
         stimin1.push_back(stimin);
         stiminval.push_back(stimin_y);
         idx += double(lenNeg);
@@ -180,7 +183,16 @@ int main() {
     vector<double> tnocorr;
     double tmedio;
     double maxMedio=media(stimamax);
-    for(int k=0; k<stimax1.size()-1;k++){
+    double contatore=0;
+    if(scelta==0){
+        contatore=30; //nel caso dello smorzamento, visto che ho dati, conviene prendere i primi picchi e non gli ultimi, visto
+        //l'andamento dei nostri dati con la doppia oscillazione che diventano difficili da trattare nella zona finale dello smorzamento
+        //anche qua, bisogna scegliere se mostrare entrambe le omega, e vedere se effettivmaente è colpa dei dati, ( come sembra a mio punto di vista)
+    }else{
+        contatore=stimax1.size()-1;
+    }
+
+    for(int k=0; k<contatore;k++){
         tnocorr.push_back((stimax1.at(k+1)-stimax1.at(k)));
         k=k+1;
     }
@@ -225,35 +237,49 @@ int main() {
         ofstream stampamax("maxgamma.txt");
         vector<double> appog;
         vector<double> appog2;
+        vector<double> erroriappog,erroriappog2;
         //nel vector thetaparticolari ho i tetha da convertire
         cout<<"-----------Vari theta particolari con rispettivo periodo: "<<endl;
+
+        //Dentro metto anche la propagazione dell'errore associato alle varie theta,il sigma di ln(theta)=sigma di theta/valore di theta; (risultato dalla formual di propagazione dell'errore)
         cout<<"____PER I MASSIMI: ___"<<endl;
         for(int i=0;i<stimax1.size();i++){
-            cout<<"-> tempo: "<<stimax1.at(i)<<" theta: "<<stimamax.at(i)<<endl;
+            cout<<"-> tempo: "<<stimax1.at(i)<<" theta: "<<stimamax.at(i)<< "con incertezza: "<<errori_thetamax.at(i)<<endl; //occhio che qua non sono ancora in radianti
             //aggiorno i dati in logaritmi naturali
             appog.push_back(log(stimamax.at(i)*2*M_PI));
+            erroriappog.push_back(errori_thetamax.at(i)/stimamax.at(i));
         }       
         // for(int i=0;i<appog.size();i++){
         //     stampamax<<stimax1.at(i)<<" "<<appog.at(i)<<endl;
         // }
         cout<<"_____PER I MINIMI: ____"<<endl;
         for(int i=0;i<stimin1.size();i++){
-            cout<<"-> tempo: "<<stimin1.at(i)<<" theta: "<<stiminval.at(i)<<endl;
+            cout<<"-> tempo: "<<stimin1.at(i)<<" theta: "<<stiminval.at(i)<< "con incertezza: "<<errori_thetamin.at(i)<<endl;
              appog2.push_back(log(fabs(stiminval.at(i) * 2*M_PI)));
+             erroriappog2.push_back(errori_thetamin.at(i)/fabs(stiminval.at(i)));
         }
-    double gammamax,gammamin;
-    interpolazionesemplice(stimax1,appog,gammamax);
-    interpolazionesemplice(stimin1,appog2,gammamin);
 
-    cout<<"Il valore di gamma per i massimi: "<<gammamax<<endl;
-    cout<<"Il valore di gamma per i minimi: "<<gammamin<<endl;
+
+
+
+    double gammamax,gammamin;
+    double devgammamax,devgammamin;
+
+
+    // interpolazionesemplice(stimax1,appog,gammamax);
+    // interpolazionesemplice(stimin1,appog2,gammamin);
+    interpolazionepesata(stimax1,appog,erroriappog,gammamax,devgammamax);
+    interpolazionepesata(stimin1,appog2,erroriappog2,gammamin,devgammamin);
+    cout<<"RISULTATI INTERPOLAZIONE PESATA"<<endl;
+    cout<<"Il valore di gamma per i massimi: "<<gammamax << "con una sigma: "<<devgammamax<<endl;
+    cout<<"Il valore di gamma per i minimi: "<<gammamin<<"con una sigma: "<<devgammamin<<endl;
     //calcolo l'omega di risonanza atteso a livello teorico
     //bisogna prima esaminare se è legittimo fare la media delle gamma, soprattuto per quanto riguarda l'analisi poi degli errori
     double mediagamma=(gammamax+gammamin)/2;
-    double omegarteorico=sqrt((2*M_PI/tmedio)*(2*M_PI/tmedio)-mediagamma*mediagamma);
+    double omegarteorico=sqrt((2*M_PI/tmedio)*(2*M_PI/tmedio)-(mediagamma*mediagamma));
     //bisogna confrontare questo valore con l'oomega di risonanza ricavato attraveros il fit parabolico con l'altro programma ( test gaussiano) 
     cout<<"La omega TEORICA di risonanza è pari a: "<<omegarteorico<<endl;
-
+    cout<<"--Usaree questo valore per un confronto gaussiano con la omega stimata con il fit parabolico ---"<<endl;
     }
 
     return 0;
@@ -349,4 +375,42 @@ void interpolazionesemplice(vector<double> x, vector<double> y, double& b){
     cout << "b = " << b << endl;
 }
 
-//ora inserisco l'interpolazione lineare che però verrà modificata ( perchè devo fare il logaritmo delle theta)
+//ora inserisco l'interpolazione pesata che però verrà modificata ( perchè devo fare il logaritmo delle theta)
+void interpolazionepesata(vector<double> x, vector<double> y, vector<double> sigmay,double& b, double& erroreb){
+// Calcolo delle sommatorie utili
+    double spesi = 0.0;   
+    double sx = 0.0;   
+    double sy = 0.0;  
+    double sxx = 0.0;  
+    double sxy = 0.0;  
+	
+	
+	//calcolo somme intermedie
+    for (int i = 0; i < x.size(); i++) {
+        double w = 1.0 / (sigmay[i] * sigmay[i]); // peso = 1/s_i^2
+        spesi  += w; //sommatoria pesi 
+        sx  += x.at(i) * w; 
+        sy  += y.at(i)* w;
+        sxx += x.at(i) * x.at(i) * w;
+        sxy += x.at(i) * y.at(i) * w;
+    }
+
+    // Calcolo del DELTA
+    double delta = (spesi * sxx) - (sx * sx);
+
+    // Stima dei parametri a e b
+    double a = ( (sxx * sy) - (sx * sxy) ) / delta;
+    b = ( (spesi  * sxy) - (sx * sy ) ) / delta;
+
+    //Calcolo delle incertezze relative ai parametri   
+    double sigma_a = sqrt(sxx/ delta);
+    double sigma_b = sqrt(spesi/ delta);
+    erroreb=sigma_b;
+
+    cout << "=== RISULTATI DEL FIT LINEARE PESATO per una retta y=a+bx ===" << endl;
+    cout << "a = " << a << endl;
+    cout << "b = " << b << endl;
+    cout << "sigma_a = " << sigma_a <<endl;
+    cout << "sigma_b = " << sigma_b << endl;
+
+}
