@@ -7,7 +7,7 @@
 using namespace std;
 
 struct ParabolaFit {
-    double a, b, c;  // y = ax² + bx + c
+    double a, b, c;  // y = axÂ² + bx + c
 };
 
 // Risoluzione sistema 3x3 con sostituzione diretta (metodo di Cramer)
@@ -145,7 +145,7 @@ cout << "\nFile fit.dat generato con il fit parabolico." << endl;
     if (fit.a != 0) {
         double delta_omega_R = -fit.b / (2 * fit.a);
         double omega_R = delta_omega_R + omega_f_max;
-        double erroreomega_R = (fabs(omega_f[end]- omega_f[start]))/2; 
+        double erroreomega_R = (fabs(omega_f[end]- omega_f[start]))/(sqrt(12)); 
         cout << "\nPulsazione di risonanza stimata: w_R = " << omega_R << endl;
         cout << "L'errore di w_R e' " << erroreomega_R << endl;
         if (fit.a < 0)
