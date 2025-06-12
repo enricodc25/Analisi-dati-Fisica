@@ -32,7 +32,7 @@ int main() {
 
          cout<<"Inserisci il nome del file: ";
          cin>>nomefile;
-         cout<<"Il file è di smorzamento? ( inserire 0, altrimenti un altro numero) ";
+         cout<<"Il file Ã¨ di smorzamento? ( inserire 0, altrimenti un altro numero) ";
          cin>>scelta;
         double M_PI= 3.14159226535897932384; 
     
@@ -85,8 +85,8 @@ int main() {
             idx += 1.0;
             continue;
         }
-        //l'idea del programma è andare a selezionare ogni curva positiva e predere come soglia il 70% rispetto al valore massimo globale in quell'intervallo
-        double maxVal = *max_element(bloccoP.begin(), bloccoP.end()); //questa è una funzione della libreria algorithm, usando i metodi .begin() e .end() io mi assicuro di prendere dall'inizio alla fine, è una scrittura compatta
+        //l'idea del programma Ã¨ andare a selezionare ogni curva positiva e predere come soglia il 70% rispetto al valore massimo globale in quell'intervallo
+        double maxVal = *max_element(bloccoP.begin(), bloccoP.end()); //questa Ã¨ una funzione della libreria algorithm, usando i metodi .begin() e .end() io mi assicuro di prendere dall'inizio alla fine, Ã¨ una scrittura compatta
 
         
             if (maxVal < sogliadeimax) {  // Salta picchi troppo piccoli
@@ -100,7 +100,7 @@ int main() {
        	
         double soglia = 0.70 * maxVal;
         cout << "Bloc #" << idx << ": max=" << maxVal //occhio, questa istruzione continua sotto, per questo nonostante sembra senza ; funziona il programma
-             << " -> soglia=" << soglia << "\n"; //il barra \n è un modo derivante dal c per andare a capo, come con endl
+             << " -> soglia=" << soglia << "\n"; //il barra \n Ã¨ un modo derivante dal c per andare a capo, come con endl
         xsFit.clear();
         ysFit.clear(); //qua devo ripulire i vector
 
@@ -187,7 +187,7 @@ int main() {
     if(scelta==0){
         contatore=30; //nel caso dello smorzamento, visto che ho dati, conviene prendere i primi picchi e non gli ultimi, visto
         //l'andamento dei nostri dati con la doppia oscillazione che diventano difficili da trattare nella zona finale dello smorzamento
-        //anche qua, bisogna scegliere se mostrare entrambe le omega, e vedere se effettivmaente è colpa dei dati, ( come sembra a mio punto di vista)
+        //anche qua, bisogna scegliere se mostrare entrambe le omega, e vedere se effettivmaente Ã¨ colpa dei dati, ( come sembra a mio punto di vista)
     }else{
         contatore=stimax1.size()-1;
     }
@@ -210,7 +210,7 @@ int main() {
     vector<double> thetaparticolari;
     double theta;
     for(int h=0; h<stiminval.size()&&h<stimamax.size(); h++){
-        theta=(stimamax.at(h)-stiminval.at(h))/2; //metto il meno perchè so che i dati contenuti qua sono negativi
+        theta=(stimamax.at(h)-stiminval.at(h))/2; //metto il meno perchÃ¨ so che i dati contenuti qua sono negativi
         thetaparticolari.push_back(theta);
         h++;
     }
@@ -224,7 +224,7 @@ int main() {
     cout<<"Omega per il file "<<nomefile<<" vale: "<<(2*M_PI/tmedio)<<" [unita di misura] "<<endl;
     cout << "Deviazione standard campionaria del periodo: " << dev_std << endl;
     cout << "Errore sulla media del periodo: " << dev_std/sqrt(n) << endl;
-    cout << "Errore omega f è " << erroreomegaf <<endl;
+    cout << "Errore omega f Ã¨ " << erroreomegaf <<endl;
     cout<<"La theta particolare (semiampiezza) con dati scorrelati vale: "<<thetaMedio*2*M_PI<<endl;
     cout<<"La deviazione standard del theta particolare medio (semiampiezza): "<<devtheta*2*M_PI<<endl;
     cout<<"---------------------------------------------------------------------------------------------------------"<<endl;
@@ -274,7 +274,7 @@ int main() {
     cout<<"Il valore di gamma per i massimi: "<<gammamax << "con una sigma: "<<devgammamax<<endl;
     cout<<"Il valore di gamma per i minimi: "<<gammamin<<"con una sigma: "<<devgammamin<<endl;
     //calcolo l'omega di risonanza atteso a livello teorico
-    //bisogna prima esaminare se è legittimo fare la media delle gamma, soprattuto per quanto riguarda l'analisi poi degli errori
+    //bisogna prima esaminare se Ã¨ legittimo fare la media delle gamma, soprattuto per quanto riguarda l'analisi poi degli errori
     double compatibilitagamma= (fabs(gammamax-gammamin))/(sqrt(devgammamax*devgammamax + devgammamin*devgammamin));
     cout << "La compatibilita tra le due gamma vale " << compatibilitagamma << endl;
     
@@ -286,7 +286,7 @@ int main() {
     
 	
 	//bisogna confrontare questo valore con l'oomega di risonanza ricavato attraveros il fit parabolico con l'altro programma ( test gaussiano) 
-    cout<<"La omega TEORICA di risonanza è pari a: "<<omegarteorico<<endl;
+    cout<<"La omega TEORICA di risonanza Ã¨ pari a: "<<omegarteorico<<endl;
     cout << "l'errore di omega Teorica e' " << erroreomegarteorico << endl; 
     cout<<"--Usare questo valore per un confronto gaussiano con la omega stimata con il fit parabolico ---"<<endl;
    
@@ -297,6 +297,10 @@ int main() {
 	
 	double compatibilitaomegar = (fabs(omegarregime-omegarteorico))/(sqrt((erroreomegarregime*erroreomegarregime) + (erroreomegarteorico*erroreomegarteorico))); 
     cout << "La compatibilita tra le omega di risonanza vale " << compatibilitaomegar << endl;
+	double omegazero = sqrt((2*M_PI/tmedio)*(2*M_PI/tmedio)+(mediagamma*mediagamma));
+    double erroreomegazero = sqrt ((pow((2*M_PI/tmedio)/(sqrt(pow(2*M_PI/tmedio,2)+pow(mediagamma,2))),2) * (pow(erroreomegaf,2)))+ ((pow((mediagamma)/(sqrt(pow(2*M_PI/tmedio,2)+pow(mediagamma,2))),2)) * (pow(erroremediagamma,2))));
+    cout << "Omegazero vale " << omegazero << endl;
+    cout << "errore omegazero vale " << erroreomegazero << endl;
     
     
     }
@@ -309,7 +313,7 @@ int estraiPositivi(const vector<double>& p,const vector<double>& t,int startInde
     out_p.clear();
     out_t.clear();
     int i = startIndex;
-    // Se il primo non è positivo, niente da fare
+    // Se il primo non Ã¨ positivo, niente da fare
     if (i >= p.size() || p.at(i) <= 0.0) return 0;
     int count = 0;
     while (i < p.size() && p.at(i) > 0.0) {
@@ -394,7 +398,7 @@ void interpolazionesemplice(vector<double> x, vector<double> y, double& b){
     cout << "b = " << b << endl;
 }
 
-//ora inserisco l'interpolazione pesata che però verrà modificata ( perchè devo fare il logaritmo delle theta)
+//ora inserisco l'interpolazione pesata che perÃ² verrÃ  modificata ( perchÃ¨ devo fare il logaritmo delle theta)
 void interpolazionepesata(vector<double> x, vector<double> y, vector<double> sigmay,double& b, double& erroreb){
 // Calcolo delle sommatorie utili
     double spesi = 0.0;   
