@@ -1,0 +1,76 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cmath>
+#include <string>
+// #include <boost/math/distributions/chi_squared.hpp>
+using namespace std;
+
+
+int main() {
+    // ===== PARAMETRO SPERIMENTALE =====
+    // incertezza assoluta sulla misura di q (uguale per tutti)
+    double sigma_q = 0.5;   // es. 0.5 mm
+    // =================================
+
+    std::ifstream file("dati.txt");
+    if (!file.is_open()) {
+        std::cerr << "Errore: impossibile aprire il file dati.txt\n";
+        return 1;
+    }
+
+    std::vector<double> x, y, sigma_y;
+
+    double p, q;
+    while (file >> p >> q) {
+
+        // cambio di variabili
+        double xi = 1.0 / p;
+        double yi = 1.0 / q;
+
+        x.push_back(xi);
+        y.push_back(yi);
+
+        // propagazione errore: y = 1/q
+        double sy = sigma_q / (q * q);
+        sigma_y.push_back(sy);
+    }
+
+    file.close();
+
+    int N = x.size();
+    //if (N < 2) {
+    //   std::cerr << "Servono almeno due punti per il fit\n";
+    //    return 1;
+    //}
+
+    // ===== FIT LINEARE PESATO =====
+    double S = 0.0, Sx = 0.0, Sy = 0.0;
+    double Sxx = 0.0, Sxy = 0.0;
+
+    for (int i = 0; i < N; ++i) {
+        double w = 1.0 / (sigma_y[i] * sigma_y[i]);
+        S   += w;
+        Sx  += w * x[i];
+        Sy  += w * y[i];
+        Sxx += w * x[i] * x[i];
+        Sxy += w * x[i] * y[i];
+    }
+
+    double Delta = S * Sxx - Sx * Sx;
+
+    double a = (S * Sxy - Sx * Sy) / Delta;
+    double b = (Sxx * Sy - Sx * Sxy) / Delta;
+
+    double x_intercept = -b / a;
+
+    // ===== OUTPUT =====
+    std::cout << "Fit lineare pesato y = a x + b\n\n";
+    std::cout << "a (pendenza)        = " << a << "\n";
+    std::cout << "b (intercetta y)    = " << b << "   <-- = 1/f\n";
+    std::cout << "Intercetta su x     = " << x_intercept << "\n";
+    std::cout << "f stimata           = " << 1.0 / b << "\n";
+    cout<< "f stimata con b su x =" <<1.0/x_intercept<<endl;
+
+    return 0;
+}
