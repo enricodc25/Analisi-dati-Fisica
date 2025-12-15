@@ -6,7 +6,6 @@
 // #include <boost/math/distributions/chi_squared.hpp>
 using namespace std;
 
-
 int main() {
     // ===== PARAMETRO SPERIMENTALE =====
     // incertezza assoluta sulla misura di q (uguale per tutti)
@@ -47,7 +46,8 @@ int main() {
     // ===== FIT LINEARE PESATO =====
     double S = 0.0, Sx = 0.0, Sy = 0.0;
     double Sxx = 0.0, Sxy = 0.0;
-
+    
+ 
     for (int i = 0; i < N; ++i) {
         double w = 1.0 / (sigma_y[i] * sigma_y[i]);
         S   += w;
@@ -58,11 +58,44 @@ int main() {
     }
 
     double Delta = S * Sxx - Sx * Sx;
+    double sigma_a = sqrt(S / Delta);
+    double sigma_b = sqrt(Sxx / Delta);
+    double cov_ab  = -Sx / Delta;
 
     double a = (S * Sxy - Sx * Sy) / Delta;
     double b = (Sxx * Sy - Sx * Sxy) / Delta;
 
     double x_intercept = -b / a;
+    double sigma_y_intercept = sigma_b;
+    double sigma_x_intercept = sqrt(
+    (sigma_b * sigma_b) / (a * a)
+  + (b * b * sigma_a * sigma_a) / (a * a * a * a)
+  - 2.0 * b * cov_ab / (a * a * a) );
+  
+  double chi2 = 0.0;
+  for (int i = 0; i < N; ++i) {
+    double r = y[i] - (a * x[i] + b);
+    chi2 += (r * r) / (sigma_y[i] * sigma_y[i]);
+}
+
+double sigma_post = sqrt(chi2 / (N - 2));
+
+double xm = 0.0, ym = 0.0;
+for (int i = 0; i < N; ++i) {
+    xm += x[i];
+    ym += y[i];
+}
+xm /= N;
+ym /= N;
+
+double num = 0.0, dx2 = 0.0, dy2 = 0.0;
+for (int i = 0; i < N; ++i) {
+    num += (x[i] - xm) * (y[i] - ym);
+    dx2 += (x[i] - xm) * (x[i] - xm);
+    dy2 += (y[i] - ym) * (y[i] - ym);
+}
+
+double r = num / sqrt(dx2 * dy2);
 
     // ===== OUTPUT =====
     std::cout << "Fit lineare pesato y = a x + b\n\n";
@@ -71,6 +104,23 @@ int main() {
     std::cout << "Intercetta su x     = " << x_intercept << "\n";
     std::cout << "f stimata           = " << 1.0 / b << "\n";
     cout<< "f stimata con b su x =" <<1.0/x_intercept<<endl;
+    
+    cout << "\n===== RISULTATI FIT =====\n";
+cout << "a = " << a << " ± " << sigma_a << endl;
+cout << "b = " << b << " ± " << sigma_b << endl;
+
+cout << "\nIntercetta y (1/f) = " << b
+     << " ± " << sigma_y_intercept << endl;
+
+cout << "Intercetta x       = " << x_intercept
+     << " ± " << sigma_x_intercept << endl;
+
+cout << "\nSigma a posteriori = " << sigma_post << endl;
+cout << "Coefficiente r     = " << r << endl;
+
 
     return 0;
 }
+
+
+
