@@ -8,48 +8,36 @@ using namespace std;
 
 int main() {
     // ===== PARAMETRO SPERIMENTALE =====
-    // incertezza assoluta sulla misura di q (uguale per tutti)
-    double sigma_q = 0.5;   // es. 0.5 mm
+    double sigma_q = 0.5;   // incertezza su q [mm]
+    double sigma_p = 0.5;   // incertezza su p [mm]
     // =================================
 
-    std::ifstream file("dati.txt");
+    ifstream file("dati.txt");
     if (!file.is_open()) {
-        std::cerr << "Errore: impossibile aprire il file dati.txt\n";
+        cerr << "Errore: impossibile aprire il file dati.txt\n";
         return 1;
     }
 
-    std::vector<double> x, y, sigma_y;
-
+    vector<double> x, y, sigma_x, sigma_y;
     double p, q;
     while (file >> p >> q) {
-
-        // cambio di variabili
         double xi = 1.0 / p;
         double yi = 1.0 / q;
 
         x.push_back(xi);
         y.push_back(yi);
 
-        // propagazione errore: y = 1/q
-        double sy = sigma_q / (q * q);
-        sigma_y.push_back(sy);
+        sigma_x.push_back(sigma_p / (p * p)); // propagazione errore su x = 1/p
+        sigma_y.push_back(sigma_q / (q * q)); // propagazione errore su y = 1/q
     }
-
     file.close();
 
     int N = x.size();
-    //if (N < 2) {
-    //   std::cerr << "Servono almeno due punti per il fit\n";
-    //    return 1;
-    //}
 
     // ===== FIT LINEARE PESATO =====
-    double S = 0.0, Sx = 0.0, Sy = 0.0;
-    double Sxx = 0.0, Sxy = 0.0;
-    
- 
+    double S=0, Sx=0, Sy=0, Sxx=0, Sxy=0;
     for (int i = 0; i < N; ++i) {
-        double w = 1.0 / (sigma_y[i] * sigma_y[i]);
+        double w = 1.0 / (sigma_y[i]*sigma_y[i]);
         S   += w;
         Sx  += w * x[i];
         Sy  += w * y[i];
@@ -57,70 +45,58 @@ int main() {
         Sxy += w * x[i] * y[i];
     }
 
-    double Delta = S * Sxx - Sx * Sx;
-    double sigma_a = sqrt(S / Delta);
-    double sigma_b = sqrt(Sxx / Delta);
-    double cov_ab  = -Sx / Delta;
+    double Delta = S*Sxx - Sx*Sx;
+    double a = (S*Sxy - Sx*Sy)/Delta;
+    double b = (Sxx*Sy - Sx*Sxy)/Delta;
 
-    double a = (S * Sxy - Sx * Sy) / Delta;
-    double b = (Sxx * Sy - Sx * Sxy) / Delta;
+    double sigma_a = sqrt(S/Delta);
+    double sigma_b = sqrt(Sxx/Delta);
+    double cov_ab = -Sx/Delta;
 
     double x_intercept = -b / a;
     double sigma_y_intercept = sigma_b;
     double sigma_x_intercept = sqrt(
-    (sigma_b * sigma_b) / (a * a)
-  + (b * b * sigma_a * sigma_a) / (a * a * a * a)
-  - 2.0 * b * cov_ab / (a * a * a) );
-  
-  double chi2 = 0.0;
-  for (int i = 0; i < N; ++i) {
-    double r = y[i] - (a * x[i] + b);
-    chi2 += (r * r) / (sigma_y[i] * sigma_y[i]);
-}
+        (sigma_b*sigma_b)/(a*a) + (b*b*sigma_a*sigma_a)/(a*a*a*a) - 2*b*cov_ab/(a*a*a)
+    );
 
-double sigma_post = sqrt(chi2 / (N - 2));
+    // ===== CHI2 E SIGMA POSTERIORE =====
+    double chi2 = 0.0;
+    for (int i = 0; i < N; ++i) {
+        double r = y[i] - (a*x[i] + b);
+        chi2 += r*r / (sigma_y[i]*sigma_y[i]);
+    }
+    double sigma_post = sqrt(chi2/(N-2));
 
-double xm = 0.0, ym = 0.0;
-for (int i = 0; i < N; ++i) {
-    xm += x[i];
-    ym += y[i];
-}
-xm /= N;
-ym /= N;
+    // ===== COEFFICIENTE DI CORRELAZIONE =====
+    double xm=0, ym=0;
+    for(int i=0;i<N;i++){ xm += x[i]; ym += y[i]; }
+    xm /= N; ym /= N;
 
-double num = 0.0, dx2 = 0.0, dy2 = 0.0;
-for (int i = 0; i < N; ++i) {
-    num += (x[i] - xm) * (y[i] - ym);
-    dx2 += (x[i] - xm) * (x[i] - xm);
-    dy2 += (y[i] - ym) * (y[i] - ym);
-}
-
-double r = num / sqrt(dx2 * dy2);
+    double num=0, dx2=0, dy2=0;
+    for(int i=0;i<N;i++){
+        num += (x[i]-xm)*(y[i]-ym);
+        dx2 += (x[i]-xm)*(x[i]-xm);
+        dy2 += (y[i]-ym)*(y[i]-ym);
+    }
+    double r = num / sqrt(dx2*dy2);
 
     // ===== OUTPUT =====
-    std::cout << "Fit lineare pesato y = a x + b\n\n";
-    std::cout << "a (pendenza)        = " << a << "\n";
-    std::cout << "b (intercetta y)    = " << b << "   <-- = 1/f\n";
-    std::cout << "Intercetta su x     = " << x_intercept << "\n";
-    std::cout << "f stimata           = " << 1.0 / b << "\n";
-    cout<< "f stimata con b su x =" <<1.0/x_intercept<<endl;
-    
-    cout << "\n===== RISULTATI FIT =====\n";
-cout << "a = " << a << " ± " << sigma_a << endl;
-cout << "b = " << b << " ± " << sigma_b << endl;
+    cout << "Fit lineare pesato y = a x + b\n\n";
+    cout << "a (pendenza)        = " << a << " ± " << sigma_a << endl;
+    cout << "b (intercetta y)    = " << b << " ± " << sigma_b << "  <-- = 1/f\n";
+    cout << "Intercetta su x     = " << x_intercept << " ± " << sigma_x_intercept << endl;
+    cout << "f stimata           = " << 1.0/b << endl;
+    cout << "f stimata con b su x = " << 1.0/x_intercept << endl;
+    cout << "\nSigma a posteriori  = " << sigma_post << endl;
+    cout << "Coefficiente r      = " << r << endl;
 
-cout << "\nIntercetta y (1/f) = " << b
-     << " ± " << sigma_y_intercept << endl;
-
-cout << "Intercetta x       = " << x_intercept
-     << " ± " << sigma_x_intercept << endl;
-
-cout << "\nSigma a posteriori = " << sigma_post << endl;
-cout << "Coefficiente r     = " << r << endl;
-
+    // ===== STAMPA ERRORI SU x e y =====
+    cout << "\nErrori propagati sui singoli punti:\n";
+    cout << "i\t1/p ± sigma_x\t1/q ± sigma_y\n";
+    for(int i=0;i<N;i++){
+        cout << i+1 << "\t" << x[i] << " ± " << sigma_x[i]
+             << "\t" << y[i] << " ± " << sigma_y[i] << endl;
+    }
 
     return 0;
 }
-
-
-
