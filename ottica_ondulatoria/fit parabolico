@@ -1,0 +1,93 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+int main()
+{
+    // ======================
+    // DATI USATI NEL FIT
+    // ======================
+    std::vector<double> theta = {
+        -46, -36, -26, -16, -6, -4, 0, 4, 14, 24, 34, 44, 54
+
+    };
+
+    std::vector<double> I = {
+        38067099, 30491864, 22559308, 14242088, 5107512, 2929815, 2468308, 4206631, 12439564, 21911187, 30332525, 37593974, 43087740
+    };
+
+    const int N = theta.size();
+
+    // ======================
+    // SOMMATORIE
+    // ======================
+    double Sx = 0, Sx2 = 0, Sx3 = 0, Sx4 = 0;
+    double Sy = 0, Sxy = 0, Sx2y = 0;
+
+    for (int i = 0; i < N; i++)
+    {
+        double x = theta[i];
+        double y = I[i];
+
+        Sx   += x;
+        Sx2  += x*x;
+        Sx3  += x*x*x;
+        Sx4  += x*x*x*x;
+
+        Sy   += y;
+        Sxy  += x*y;
+        Sx2y += x*x*y;
+    }
+
+    // ======================
+    // SISTEMA LINEARE
+    // ======================
+    // | Sx4  Sx3  Sx2 |   | A |   | Sx2y |
+    // | Sx3  Sx2  Sx  | * | B | = | Sxy  |
+    // | Sx2  Sx   N   |   | C |   | Sy   |
+
+    double D =
+        Sx4*(Sx2*N - Sx*Sx) -
+        Sx3*(Sx3*N - Sx*Sx2) +
+        Sx2*(Sx3*Sx - Sx2*Sx2);
+
+    double DA =
+        Sx2y*(Sx2*N - Sx*Sx) -
+        Sx3*(Sxy*N - Sx*Sy) +
+        Sx2*(Sxy*Sx - Sx2*Sy);
+
+    double DB =
+        Sx4*(Sxy*N - Sx*Sy) -
+        Sx2y*(Sx3*N - Sx*Sx2) +
+        Sx2*(Sx3*Sy - Sx2*Sxy);
+
+    double DC =
+        Sx4*(Sx2*Sy - Sx*Sxy) -
+        Sx3*(Sx3*Sy - Sx2*Sxy) +
+        Sx2y*(Sx3*Sx - Sx2*Sx2);
+
+    double A = DA / D;
+    double B = DB / D;
+    double C = DC / D;
+
+    // ======================
+    // POSIZIONE DEL MASSIMO
+    // ======================
+    double theta_max = -B / (2*A);
+
+    // ======================
+    // OUTPUT
+    // ======================
+    std::cout << "Fit parabolico:\n";
+    std::cout << "A = " << A << "\n";
+    std::cout << "B = " << B << "\n";
+    std::cout << "C = " << C << "\n\n";
+
+    std::cout << "Massimo relativo (rispetto a 60°): "
+              << theta_max << " deg\n";
+
+    std::cout << "Massimo assoluto: "
+              << 60 + theta_max << " deg\n";
+
+    return 0;
+}
