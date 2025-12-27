@@ -1,7 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-
+#include <fstream>
+#include <iomanip>
 int main()
 {
     // ======================
@@ -10,10 +11,14 @@ int main()
     std::vector<double> theta = {
         -46, -36, -26, -16, -6, -4, 0, 4, 14, 24, 34, 44, 54
 
+
+
     };
 
     std::vector<double> I = {
-        38067099, 30491864, 22559308, 14242088, 5107512, 2929815, 2468308, 4206631, 12439564, 21911187, 30332525, 37593974, 43087740
+    38067099, 30491864, 22559308, 14242088, 5107512, 2929815, 2468308, 4206631, 12439564, 21911187, 30332525, 37593974, 43087740
+ 
+
     };
 
     const int N = theta.size();
@@ -88,6 +93,38 @@ int main()
 
     std::cout << "Massimo assoluto: "
               << 60 + theta_max << " deg\n";
+   
+
+// ======================
+// PARAMETRI DELLA CURVA
+// ======================
+double theta_minfit = -26.0;
+double theta_maxfit = 24.0;
+double step = 0.01;
+
+// ======================
+// FILE DI OUTPUT
+// ======================
+std::ofstream fout("parabola_fit.dat");
+
+// intestazione (commento per gnuplot)
+fout << "# theta    I_fit\n";
+
+// ======================
+// GENERAZIONE PUNTI
+// ======================
+for (double theta = theta_minfit; theta <= theta_maxfit; theta += step)
+{
+    double I_fit = A*theta*theta + B*theta + C;
+
+    fout << std::fixed << std::setprecision(6)
+         << theta << " "
+         << std::setprecision(6)
+         << I_fit << "\n";
+}
+
+fout.close();
+
 
     return 0;
 }
