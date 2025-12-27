@@ -1,0 +1,147 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <limits>
+
+
+int main()
+{
+    // ======================
+    // DATI SPERIMENTALI
+    // ======================
+    std::vector<double> theta = {50, 40, 30, 20, 10, 8, 6, 4, 2, 0, -2, -4, -6, -8, -10, -20, -30, -40, -50};
+    std::vector<double> I     = {22955060, 27268480, 31145939, 33551795, 35368387, 35723289, 35688145, 35983287, 36157289, 36346035, 36264661, 36194879, 36097662, 35951617, 35733249, 34216167, 31910309, 27750573, 23847128
+};
+
+    const int N = theta.size();
+
+    // ======================
+    // TROVO IL MASSIMO APPROSSIMATIVO
+    // ======================
+    double I_max = std::numeric_limits<double>::lowest();
+    double theta_max = 0;
+
+    for (int i = 0; i < N; i++)
+    {
+        if (I[i] > I_max)
+        {
+            I_max = I[i];
+            theta_max = theta[i];
+        }
+    }
+
+    // ======================
+    // SELEZIONE PUNTI VICINI AL MASSIMO
+    // Definire un intorno di ±10° attorno al massimo (modificabile)
+    // ======================
+    double delta_theta = 10.0; // intorno di selezione
+    std::vector<double> theta_local;
+    std::vector<double> I_local;
+
+    for (int i = 0; i < N; i++)
+    {
+        if (std::abs(theta[i] - theta_max) <= delta_theta)
+        {
+            theta_local.push_back(theta[i]);
+            I_local.push_back(I[i]);
+        }
+    }
+
+    int N_local = theta_local.size();
+
+    // ======================
+    // SOMMATORIE PER FIT PARABOLICO LOCALE
+    // ======================
+    double Sx=0, Sx2=0, Sx3=0, Sx4=0;
+    double Sy=0, Sxy=0, Sx2y=0;
+
+    for (int i = 0; i < N_local; i++)
+    {
+        double x = theta_local[i];
+        double y = I_local[i];
+
+        Sx   += x;
+        Sx2  += x*x;
+        Sx3  += x*x*x;
+        Sx4  += x*x*x*x;
+
+        Sy   += y;
+        Sxy  += x*y;
+        Sx2y += x*x*y;
+    }
+
+    // ======================
+    // RISOLUZIONE SISTEMA LINEARE 3x3
+    // ======================
+    double D =
+        Sx4*(Sx2*N_local - Sx*Sx) -
+        Sx3*(Sx3*N_local - Sx*Sx2) +
+        Sx2*(Sx3*Sx - Sx2*Sx2);
+
+    double DA =
+        Sx2y*(Sx2*N_local - Sx*Sx) -
+        Sx3*(Sxy*N_local - Sx*Sy) +
+        Sx2*(Sxy*Sx - Sx2*Sy);
+
+    double DB =
+        Sx4*(Sxy*N_local - Sx*Sy) -
+        Sx2y*(Sx3*N_local - Sx*Sx2) +
+        Sx2*(Sx3*Sy - Sx2*Sxy);
+
+    double DC =
+        Sx4*(Sx2*Sy - Sx*Sxy) -
+        Sx3*(Sx3*Sy - Sx2*Sxy) +
+        Sx2y*(Sx3*Sx - Sx2*Sx2);
+
+    double A = DA / D;
+    double B = DB / D;
+    double C = DC / D;
+
+    // ======================
+    // POSIZIONE DEL MASSIMO LOCALE
+    // ======================
+    double theta_max_fit = -B / (2*A);
+
+    // ======================
+    // CONVERSIONE AL MASSIMO ASSOLUTO (RISPETTO AL TUO ZERO A 139°)
+    // ======================
+    double theta_max_assoluto = 139 + theta_max_fit;
+
+    // ======================
+    // OUTPUT A SCHERMO
+    // ======================
+    std::cout << "Fit parabolico locale (massimo):\n";
+    std::cout << "A = " << A << "\n";
+    std::cout << "B = " << B << "\n";
+    std::cout << "C = " << C << "\n\n";
+
+    std::cout << "Massimo relativo (theta): " << theta_max_fit << " deg\n";
+    std::cout << "Massimo assoluto rispetto a 139°: " << theta_max_assoluto << " deg\n";
+    std::cout << "Intensità massima stimata: " << A*theta_max_fit*theta_max_fit + B*theta_max_fit + C << "\n";
+
+    // ======================
+    // FILE DI OUTPUT PER GNUPLOT
+    // ======================
+    double theta_plot_min = theta_max - delta_theta;
+    double theta_plot_max = theta_max + delta_theta;
+    double step = 0.01;
+
+    std::ofstream fout("parabola_fit_massimo.dat");
+    fout << "# theta    I_fit\n";
+
+    for (double th = theta_plot_min; th <= theta_plot_max; th += step)
+    {
+        double I_fit = A*th*th + B*th + C;
+        fout << std::fixed << std::setprecision(6) << th << " " << I_fit << "\n";
+    }
+
+    fout.close();
+
+    std::cout << "\nFile 'parabola_fit_massimo.dat' generato per Gnuplot.\n";
+
+    return 0;
+}
+
+    
