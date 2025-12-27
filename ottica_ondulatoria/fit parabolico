@@ -22,17 +22,50 @@ int main()
     };
 
     const int N = theta.size();
-
+// ======================
+    // TROVO IL MINIMO APPROSSIMATIVO
     // ======================
-    // SOMMATORIE
-    // ======================
-    double Sx = 0, Sx2 = 0, Sx3 = 0, Sx4 = 0;
-    double Sy = 0, Sxy = 0, Sx2y = 0;
+    double I_min = std::numeric_limits<double>::max();
+    double theta_min = 0;
 
     for (int i = 0; i < N; i++)
     {
-        double x = theta[i];
-        double y = I[i];
+        if (I[i] < I_min)
+        {
+            I_min = I[i];
+            theta_min = theta[i];
+        }
+    }
+
+    // ======================
+    // SELEZIONE PUNTI VICINI AL MINIMO
+    // Definire un intorno di ±10° attorno al minimo (modificabile)
+    // ======================
+    double delta_theta = 10.0; // intorno di selezione
+    std::vector<double> theta_local;
+    std::vector<double> I_local;
+
+    for (int i = 0; i < N; i++)
+    {
+        if (std::abs(theta[i] - theta_min) <= delta_theta)
+        {
+            theta_local.push_back(theta[i]);
+            I_local.push_back(I[i]);
+        }
+    }
+
+    int N_local = theta_local.size();
+
+    // ======================
+    // SOMMATORIE PER FIT PARABOLICO LOCALE
+    // ======================
+    double Sx=0, Sx2=0, Sx3=0, Sx4=0;
+    double Sy=0, Sxy=0, Sx2y=0;
+
+    for (int i = 0; i < N_local; i++)
+    {
+        double x = theta_local[i];
+        double y = I_local[i];
 
         Sx   += x;
         Sx2  += x*x;
@@ -45,25 +78,21 @@ int main()
     }
 
     // ======================
-    // SISTEMA LINEARE
+    // RISOLUZIONE SISTEMA LINEARE 3x3
     // ======================
-    // | Sx4  Sx3  Sx2 |   | A |   | Sx2y |
-    // | Sx3  Sx2  Sx  | * | B | = | Sxy  |
-    // | Sx2  Sx   N   |   | C |   | Sy   |
-
     double D =
-        Sx4*(Sx2*N - Sx*Sx) -
-        Sx3*(Sx3*N - Sx*Sx2) +
+        Sx4*(Sx2*N_local - Sx*Sx) -
+        Sx3*(Sx3*N_local - Sx*Sx2) +
         Sx2*(Sx3*Sx - Sx2*Sx2);
 
     double DA =
-        Sx2y*(Sx2*N - Sx*Sx) -
-        Sx3*(Sxy*N - Sx*Sy) +
+        Sx2y*(Sx2*N_local - Sx*Sx) -
+        Sx3*(Sxy*N_local - Sx*Sy) +
         Sx2*(Sxy*Sx - Sx2*Sy);
 
     double DB =
-        Sx4*(Sxy*N - Sx*Sy) -
-        Sx2y*(Sx3*N - Sx*Sx2) +
+        Sx4*(Sxy*N_local - Sx*Sy) -
+        Sx2y*(Sx3*N_local - Sx*Sx2) +
         Sx2*(Sx3*Sy - Sx2*Sxy);
 
     double DC =
@@ -76,55 +105,47 @@ int main()
     double C = DC / D;
 
     // ======================
-    // POSIZIONE DEL MASSIMO
+    // POSIZIONE DEL MINIMO LOCALE
     // ======================
-    double theta_max = -B / (2*A);
+    double theta_min_fit = -B / (2*A);
 
     // ======================
-    // OUTPUT
+    // CONVERSIONE AL MINIMO ASSOLUTO (RISPETTO AL TUO ZERO A 60°)
     // ======================
-    std::cout << "Fit parabolico:\n";
+    double theta_min_assoluto = 60 + theta_min_fit;
+
+    // ======================
+    // OUTPUT A SCHERMO
+    // ======================
+    std::cout << "Fit parabolico locale:\n";
     std::cout << "A = " << A << "\n";
     std::cout << "B = " << B << "\n";
     std::cout << "C = " << C << "\n\n";
 
-    std::cout << "Massimo relativo (rispetto a 60°): "
-              << theta_max << " deg\n";
+    std::cout << "Minimo relativo (theta): " << theta_min_fit << " deg\n";
+    std::cout << "Minimo assoluto rispetto a 60°: " << theta_min_assoluto << " deg\n";
+    std::cout << "Intensità minima stimata: " << A*theta_min_fit*theta_min_fit + B*theta_min_fit + C << "\n";
 
-    std::cout << "Massimo assoluto: "
-              << 60 + theta_max << " deg\n";
-   
+    // ======================
+    // FILE DI OUTPUT PER GNUPLOT
+    // ======================
+    double theta_plot_min = theta_min - delta_theta;
+    double theta_plot_max = theta_min + delta_theta;
+    double step = 0.01;
 
-// ======================
-// PARAMETRI DELLA CURVA
-// ======================
-double theta_minfit = -26.0;
-double theta_maxfit = 24.0;
-double step = 0.01;
+    std::ofstream fout("parabola_fit.dat");
+    fout << "# theta    I_fit\n";
 
-// ======================
-// FILE DI OUTPUT
-// ======================
-std::ofstream fout("parabola_fit.dat");
+    for (double th = theta_plot_min; th <= theta_plot_max; th += step)
+    {
+        double I_fit = A*th*th + B*th + C;
+        fout << std::fixed << std::setprecision(6) << th << " " << I_fit << "\n";
+    }
 
-// intestazione (commento per gnuplot)
-fout << "# theta    I_fit\n";
+    fout.close();
 
-// ======================
-// GENERAZIONE PUNTI
-// ======================
-for (double theta = theta_minfit; theta <= theta_maxfit; theta += step)
-{
-    double I_fit = A*theta*theta + B*theta + C;
-
-    fout << std::fixed << std::setprecision(6)
-         << theta << " "
-         << std::setprecision(6)
-         << I_fit << "\n";
-}
-
-fout.close();
-
+    std::cout << "\nFile 'parabola_fit.dat' generato per Gnuplot.\n";
 
     return 0;
 }
+
