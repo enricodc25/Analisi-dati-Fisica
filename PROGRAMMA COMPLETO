@@ -99,6 +99,7 @@ int main() {
 	
 	double sigma_S=0.0; 
 	sigma_S= sqrt(Y+sigma2_F);
+	cout << "sigmaS vale " << sigma_S <<endl;
 	
 	double lambda=0.0;
 	lambda= (S/sigma_S);
